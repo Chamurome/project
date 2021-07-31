@@ -1,3 +1,7 @@
+# module:           tools
+# version:          1.0.0
+# brief             helper functions and macros.
+
 include_guard(GLOBAL)
 include(CMakeParseArguments)
 
@@ -37,20 +41,6 @@ macro(push_up _var)
     endif(DEFINED "${_var}")
 endmacro(push_up _var)
 
-macro(check_tests)
-    set(TEST test)
-    if(ARGC EQUAL 1)
-        set(TEST ${ARGV0})
-    endif()
-    if("${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
-        include(CTest)
-        if(BUILD_TESTING)
-            status("Configurando tests ${PROJECT_NAME}")
-            add_subdirectory(${TEST})
-        endif(BUILD_TESTING)
-    endif()
-endmacro(check_tests)
-
 # Determina un valor en función de BOOL_VALUE.
 # BOOL_VALUE        valor que determina la salida. Si se omite ARGV4(output)
 #                   el valor determinado es reasignado a esta variable.
@@ -82,40 +72,45 @@ function(cond BOOL_VALUE TRUE_VALUE FALSE_VALUE)
 
 endfunction(cond BOOL_VALUE TRUE_VALUE FALSE_VALUE)
 
-# escanea el directorio para las extensiones .cpp .cxx .c
-function(get_sources DIR OUTPUT)
+
+# escanea el directorio recursivamente para los patrones glob indicados
+# devuelve rutas relativas a dir.
+function(get_files _dir _out)
 
     set(RESULT "")
+    set(pat "")
+    foreach(it ${ARGN})
+        list(APPEND pat ${_dir}/${it})
+    endforeach(it ${ARGN})
     
-    if(IS_DIRECTORY ${DIR})
-        file(GLOB_RECURSE RESULT LIST_DIRECTORIES false CONFIGURE_DEPENDS "${DIR}/*.cpp" "${DIR}/*.cxx" "${DIR}/*.c")
-    endif(IS_DIRECTORY ${DIR})
+    if(IS_DIRECTORY ${_dir})
+        file(GLOB_RECURSE RESULT LIST_DIRECTORIES false RELATIVE ${_dir} CONFIGURE_DEPENDS ${pat})
+    endif(IS_DIRECTORY ${_dir})
 
-    set("${OUTPUT}" ${RESULT} PARENT_SCOPE)
+    set("${_out}" ${RESULT} PARENT_SCOPE)
 
-endfunction(get_sources DIR OUTPUT)
+endfunction(get_files _dir _out)
 
+
+# escanea el directorio para las extensiones .cpp .cxx .c
+macro(get_sources _dir _out)
+    get_files(${_dir} ${_out} *.cpp *.cxx *.c)
+endmacro(get_sources _dir _out)
  
 # escanea el directorio para las extensiones .hpp .hxx .h
-function(get_headers DIR OUTPUT)
+macro(get_headers _dir _out)
+    get_files(${_dir} ${_out} *.hpp *.hxx *.h)
+endmacro(get_headers _dir _out)
 
-    set(RESULT "")
+# toma todos los ficheros .in de from_dir y los procesa con configure file
+# dejando en to_dir el resultado.
+# Los nombre de fichero se generan quitando el .in del nombre.
+function(config_headers _from_dir _to_dir)
+    get_files(${_from_dir} files *.in)
+    foreach(it ${files})
+        get_filename_component(name ${it} NAME_WLE)
+        get_filename_component(dir ${it} DIRECTORY)
+        configure_file("${_from_dir}/${it}" "${_to_dir}/${dir}/${name}")
+    endforeach(it ${files})
     
-    if(IS_DIRECTORY ${DIR})
-        file(GLOB_RECURSE RESULT LIST_DIRECTORIES false CONFIGURE_DEPENDS "${DIR}/*.hpp" "${DIR}/*.hxx" "${DIR}/*.h")
-    endif(IS_DIRECTORY ${DIR})
-
-    set("${OUTPUT}" ${RESULT} PARENT_SCOPE)
-
-endfunction(get_headers DIR OUTPUT)
-
-function(to_real_path _root _output)
-    set(res "")
-    foreach(file ${ARGN})
-        file(REAL_PATH "${file}" file BASE_DIRECTORY "${_root}" )
-        list(APPEND res ${file})
-    endforeach(file ${ARGN})
-    set(${_output} ${res} PARENT_SCOPE)
-endfunction(to_real_path _root)
- 
- 
+endfunction(config_headers)
