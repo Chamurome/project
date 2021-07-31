@@ -1,0 +1,95 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Environment",
+            "command": "environment.bat",
+            "options": {
+                "cwd": "${workspaceFolder}/scripts"
+            },
+            "group": "none"
+        },
+        {
+            "type": "cppbuild",
+            "label": "Build",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                ">",
+                "build.log"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Contruye atraves de cmake",
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "dependsOn": [
+                "Environment"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "type": "shell",
+            "label": "Run test",
+            "command": "${workspaceFolder}\\build\\app\\test\\test.exe",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }, 
+            "detail": "Ejecuta test.",
+            "dependsOn": [
+                "Build"
+            ],
+            "dependsOrder": "sequence",
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Run App",
+            "command": "${workspaceFolder}\\build\\bin\\main.exe",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "test", 
+            "detail": "Ejecuta aplicación principal.",
+            "dependsOn": [
+                "Build"
+            ],
+            "dependsOrder": "sequence",
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        }
+    ],
+    "version": "2.0.0"
+}

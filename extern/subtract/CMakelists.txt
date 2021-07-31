@@ -1,0 +1,10 @@
+project(subtract)
+config_target(subtract
+    TYPE static
+    SRC_DIR .
+    INC_DIR include
+    INC_SUFFIX subtract
+    ALIAS sub::subtract
+    INSTALL_BIN_DIR lib
+    INSTALL_INC_DIR include
+)
