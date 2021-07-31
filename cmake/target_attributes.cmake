@@ -40,31 +40,24 @@ function(target_attributes _name)
     )
     set(multiples LIBRARIES INCLUDES SUBPROJECTS)
 
+    message("*** ${NAME} ${ARGN}") 
     string(TOUPPER ${_name} ID)
     cmake_parse_arguments(${ID} "${options}" "${singles}" "${multiples}" ${ARGN} )
 
     ensure("${ID}_TYPE" "exe")
     cond(${ID}_ROOT "${PROJECT_SOURCE_DIR}/${${ID}_ROOT}" "${PROJECT_SOURCE_DIR}")
-
-    cond("${ID}_INC_DIR" "${${ID}_ROOT}/${${ID}_INC_DIR}" "${${ID}_ROOT}")
-    cond("${ID}_SUBS_DIR" "${${ID}_ROOT}/${${ID}_SUBS_DIR}" "${${ID}_ROOT}")
     
     string(TOUPPER "${${ID}_TYPE}" "${ID}_TYPE")
     
     if(DEFINED ${ID}_SRC_DIR)
         file(REAL_PATH "${${ID}_SRC_DIR}" ${ID}_SRC_DIR BASE_DIRECTORY "${${ID}_ROOT}" )
         
-        if(DEFINED ${ID}_SRC_FILES)
-            to_real_path(${${ID}_SRC_DIR} ${ID}_SRC_FILES ${${ID}_SRC_FILES})
-        else(DEFINED ${ID}_SRC_FILES)
+        if(NOT DEFINED ${ID}_SRC_FILES)
             get_sources("${${ID}_SRC_DIR}" "${ID}_SRC_FILES")
             push_up(${ID}_SRC_FILES)
-        endif(DEFINED ${ID}_SRC_FILES)
-
-        if(DEFINED ${ID}_SRC_FILES)
-            push_up(${ID}_INSTALL_BIN_DIR)
-        endif(DEFINED ${ID}_SRC_FILES)
-        
+        endif()
+        to_real_path(${${ID}_SRC_DIR} ${ID}_SRC_FILES ${${ID}_SRC_FILES})
+       
         set(${ID}_SRC_DIR ${${ID}_SRC_DIR} PARENT_SCOPE)
 
     endif(DEFINED ${ID}_SRC_DIR)
@@ -81,15 +74,11 @@ function(target_attributes _name)
             set(real_path "${${ID}_INC_DIR}")
         endif(DEFINED ${ID}_INC_SUFFIX)
 
-        if(DEFINED ${ID}_INC_FILES)
-            to_real_path("${real_path}" ${ID}_INC_FILES ${${ID}_INC_FILES})
-        else(DEFINED ${ID}_INC_FILES)
+        if(NOT DEFINED ${ID}_INC_FILES)
             get_headers("${real_path}" ${ID}_INC_FILES)
-        endif(DEFINED ${ID}_INC_FILES)
-
-        if(DEFINED ${ID}_INC_FILES)
-            push_up(${ID}_INSTALL_INC_DIR)
-        endif(DEFINED ${ID}_INC_FILES)
+            to_real_path("${real_path}" ${ID}_INC_FILES ${${ID}_INC_FILES})
+        endif()
+        to_real_path("${real_path}" ${ID}_INC_FILES ${${ID}_INC_FILES})
 
         set(${ID}_INC_DIR ${${ID}_INC_DIR} PARENT_SCOPE)
 

@@ -7,10 +7,13 @@ include(target_attributes)
 # establece los directorios de inclusion
 macro(_set_includes)
 
-    target_include_directories(${NAME}
-        PUBLIC "${${ID}_INC_DIR}"
-    )
-
+    if(DEFINED ${ID}_INC_DIR)
+        info("Include directories ${${ID}_INC_DIR} ")
+        target_include_directories(${NAME}
+            PUBLIC "${${ID}_INC_DIR}"
+        )       
+    endif()
+    
     if(DEFINED ${ID}_LOC_INC_DIR)
         target_include_directories(${NAME}
             PRIVATE "${${ID}_LOC_INC_DIR}"
@@ -53,7 +56,6 @@ endmacro(_set_install_dirs)
 function(_config_library NAME)
     target_attributes(${NAME} ${ARGN})
     show_attributes()
-
     cmake_language(CALL
         add_library
         "${NAME}"
@@ -70,6 +72,9 @@ function(_config_library NAME)
     endif(DEFINED ${ID}_ALIAS)
     
     _set_install_dirs()
+
+    info("Configured library")
+
 endfunction(_config_library NAME)
 
 # configura un executable con los parámetros determinados por target_attributes
@@ -89,6 +94,7 @@ function(_config_executable  NAME)
     _set_libraries()
 
     _set_install_dirs()
+    info("Configured executable")
 
 endfunction(_config_executable NAME)
 
@@ -109,6 +115,7 @@ function(_config_interface NAME)
     )
 
     _set_install_dirs()
+    info("Configured interface")
 
 endfunction(_config_interface NAME)
 

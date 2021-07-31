@@ -114,3 +114,12 @@ function(config_headers _from_dir _to_dir)
     endforeach(it ${files})
     
 endfunction(config_headers)
+
+function(to_real_path _root _output)
+    set(res "")
+    foreach(file ${ARGN})
+        file(REAL_PATH "${file}" file BASE_DIRECTORY "${_root}" )
+        list(APPEND res ${file})
+    endforeach(file ${ARGN})
+    set(${_output} ${res} PARENT_SCOPE)
+endfunction(to_real_path _root)
