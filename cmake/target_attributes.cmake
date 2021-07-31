@@ -27,16 +27,15 @@ include(tools)
 # TEST_FRAMEWORK    Nombre del framework para testear(googletest)
 # TEST_GIT          Dirección repositorio Git
 # TEST_GIT_TAG      Tag del repositorio a descargar.
+# INSTALLABLE       Prepara el objetivo para la instalación.
 function(target_attributes _name)
-    set(options)
+    set(options INSTALLABLE)
     set(singles 
         ROOT TYPE 
         TEST_DIR INC_DIR SRC_DIR 
         INC_FILES SRC_FILES 
         INC_SUFFIX ALIAS 
         SUBS_DIR
-        INSTALL_BIN_DIR INSTALL_INC_DIR 
-        INSTALL_BIN_FILES INSTALL_INC_FILES
         TEST_FRAMEWORK TEST_GIT TEST_GIT_TAG
     )
     set(multiples LIBRARIES INCLUDES SUBPROJECTS)
@@ -77,6 +76,7 @@ function(target_attributes _name)
         if(DEFINED ${ID}_INC_SUFFIX)
             set(real_path "${${ID}_INC_DIR}/${${ID}_INC_SUFFIX}")
             set(${ID}_LOC_INC_DIR ${real_path} PARENT_SCOPE)  
+            set(${ID}_INC_SUFFIX ${${ID}_INC_SUFFIX} PARENT_SCOPE)  
         else(DEFINED ${ID}_INC_SUFFIX)
             set(real_path "${${ID}_INC_DIR}")
         endif(DEFINED ${ID}_INC_SUFFIX)
@@ -100,7 +100,6 @@ function(target_attributes _name)
         _prepare_tests()
     endif(DEFINED ${ID}_TEST_DIR)
     
-    
 
     if(NOT "${${ID}_TYPE}" STREQUAL "APP" AND NOT "${${ID}_TYPE}" STREQUAL "EXE")
         push_up(${ID}_ALIAS)
@@ -113,6 +112,7 @@ function(target_attributes _name)
     push_up(${ID}_INCLUDES)
     push_up(${ID}_SUBPROJECTS)
     push_up(${ID}_LIBRARIES)
+    push_up(${ID}_INSTALLABLE)
     
 endfunction(target_attributes)
 
@@ -127,13 +127,12 @@ macro(show_attributes)
     var_info("${ID}_TEST_DIR")
     var_info("${ID}_SRC_FILES")
     var_info("${ID}_INC_FILES")
+    var_info("${ID}_INC_SUFFIX")
     var_info("${ID}_LIBRARIES")
     var_info("${ID}_LOC_INC_DIR")
     var_info("${ID}_INCLUDES")
     var_info("${ID}_SUBPROJECTS")
-    var_info("${ID}_INSTALL_BIN_DIR")
-    var_info("${ID}_INSTALL_INC_DIR")
-    var_info("${ID}_TEST_DIR")
+    var_info("${ID}_INSTALLABLE")
     var_info("${ID}_TEST_FRAMEWORK")
     var_info("${ID}_TEST_GIT")
     var_info("${ID}_TEST_GIT_TAG")

@@ -1,7 +1,6 @@
 #   module:     config_target.cmake 
-#   version:    0.1.0
+#   version:    0.1.1
 #   brief:      automatiza la creación de objetivos simples.
-
 include_guard(GLOBAL)
 include(target_attributes)
 
@@ -34,16 +33,21 @@ macro(_set_libraries)
     endif(DEFINED ${ID}_LIBRARIES)    
 endmacro(_set_libraries)
 
+# prepara le objetivo para la instalación.
+# Los INC_FILES van a include o include/INC_SUFFIX si se declara
+# El resto a las carpetas por defecto.
 macro(_set_install_dirs)
-    if(DEFINED ${ID}_INSTALL_BIN_DIR)
-        install(TARGETS ${NAME} DESTINATION ${${ID}_INSTALL_BIN_DIR})
-    endif(DEFINED ${ID}_INSTALL_BIN_DIR)
-
-    if(DEFINED ${ID}_INSTALL_INC_DIR)
-        install(FILES ${${ID}_INC_FILES} DESTINATION ${${ID}_INSTALL_INC_DIR})
-    endif(DEFINED ${ID}_INSTALL_INC_DIR)
+    if(DEFINED ${ID}_INSTALLABLE)
+        if(DEFINED ${ID}_INC_SUFFIX)
+            install(FILES ${${ID}_INC_FILES} DESTINATION "include/${${ID}_INC_SUFFIX}")
+        else()
+            install(FILES ${${ID}_INC_FILES} DESTINATION include)
+        endif()
+        install(TARGETS ${NAME})        
+    endif()
 
 endmacro(_set_install_dirs)
+
 
 # configura una libreria con los parámetros determinados por target_attributes
 function(_config_library NAME)
