@@ -1,31 +1,17 @@
+# -----------------------------------------------------------------------------
 # module:           tools
-# version:          1.0.0
-# brief             helper functions and macros.
+# version:          2.0.0
+# brief:            helper functions and macros.
+# news:             
+# - Replace functions info and status by module info
+# - Replace functions get_files, get_sources, get_headers and to_real_path by
+#   module paths.
+# -----------------------------------------------------------------------------
 
 include_guard(GLOBAL)
 include(CMakeParseArguments)
-
-# Muestra mensaje de estado si SHOW_INFO es ON
-# MSG           mensaje
-# ARGV1         projecto que envia el mensaje(por omisión el actual)
-function(info)
-    if(SHOW_INFO)
-        status(${ARGN})
-    endif()
-endfunction(info)
-
-# Muestra mensaje de estado 
-# MSG           mensaje
-# ARGV1         projecto que envia el mensaje(por omisión el actual)
-function(status)
-    message(STATUS "${PROJECT_NAME}> ${ARGN}")
-endfunction(status)
-
-macro(var_info _var)
-    if(DEFINED "${_var}")
-        info("${_var}: ${${_var}}" ${ARGN})
-    endif(DEFINED "${_var}")
-endmacro(var_info _var)
+include(paths)
+include(info)
 
 # asegura que _name tenga un valor(p.o. _default)
 macro(ensure _name _default)
@@ -41,20 +27,26 @@ macro(push_up _var)
     endif(DEFINED "${_var}")
 endmacro(push_up _var)
 
-# Determina un valor en función de BOOL_VALUE.
-# BOOL_VALUE        valor que determina la salida. Si se omite ARGV4(output)
-#                   el valor determinado es reasignado a esta variable.
-# TRUE_VALUE        Valor devuelto si BOOL_VALUE es true.
-# FALSE_VALUE       Valor devuelto si BOOL_VALUE es false.
-# ARV4(output)      Opcional. Variable de salida. Si se omite se asigna a BOOL_VALUE.
-function(cond BOOL_VALUE TRUE_VALUE FALSE_VALUE)
+# -----------------------------------------------------------------------------
+# Determina un valor en función de _bool.
+# cond(<bool> <true> <false> [<out>])
+#   bool              valor que determina la salida.
+#                     el valor determinado es reasignado a esta variable.
+#   true              Valor devuelto si _bool es true.
+#   false             Valor devuelto si _bool es false.
+#   out               Variable de salida(p.o. <bool>).
+#
+# <bool> Se considera false si es 0, OFF, FALSE o una cadena vacía. En 
+# cualquier otro caso true.
+# -----------------------------------------------------------------------------
+function(cond _bool _true _false)
 
-    set(OUTPUT ${BOOL_VALUE})
+    set(OUTPUT ${_bool})
     if(ARGC EQUAL 4)
         set(OUTPUT ${ARGV3})
     endif(ARGC EQUAL 4)
     
-    set(EXPR ${${BOOL_VALUE}})
+    set(EXPR ${${_bool}})
     if(EXPR)
         string(TOUPPER ${EXPR} EXPR)
         if(EXPR STREQUAL 0 OR EXPR STREQUAL OFF OR EXPR STREQUAL FALSE OR EXPR STREQUAL "")
@@ -65,48 +57,23 @@ function(cond BOOL_VALUE TRUE_VALUE FALSE_VALUE)
     endif(EXPR)
 
     if(EXPR)
-        set(${OUTPUT} ${TRUE_VALUE} PARENT_SCOPE)
+        set(${OUTPUT} ${_true} PARENT_SCOPE)
     else(EXPR)
-        set(${OUTPUT} ${FALSE_VALUE} PARENT_SCOPE)
+        set(${OUTPUT} ${_false} PARENT_SCOPE)
     endif(EXPR)
 
-endfunction(cond BOOL_VALUE TRUE_VALUE FALSE_VALUE)
+endfunction(cond _bool _true _false)
 
 
-# escanea el directorio recursivamente para los patrones glob indicados
-# devuelve rutas relativas a dir.
-function(get_files _dir _out)
-
-    set(RESULT "")
-    set(pat "")
-    foreach(it ${ARGN})
-        list(APPEND pat ${_dir}/${it})
-    endforeach(it ${ARGN})
-    
-    if(IS_DIRECTORY ${_dir})
-        file(GLOB_RECURSE RESULT LIST_DIRECTORIES false RELATIVE ${_dir} CONFIGURE_DEPENDS ${pat})
-    endif(IS_DIRECTORY ${_dir})
-
-    set("${_out}" ${RESULT} PARENT_SCOPE)
-
-endfunction(get_files _dir _out)
-
-
-# escanea el directorio para las extensiones .cpp .cxx .c
-macro(get_sources _dir _out)
-    get_files(${_dir} ${_out} *.cpp *.cxx *.c)
-endmacro(get_sources _dir _out)
- 
-# escanea el directorio para las extensiones .hpp .hxx .h
-macro(get_headers _dir _out)
-    get_files(${_dir} ${_out} *.hpp *.hxx *.h)
-endmacro(get_headers _dir _out)
-
-# toma todos los ficheros .in de from_dir y los procesa con configure file
+# -----------------------------------------------------------------------------
+# toma todos los ficheros .in de from_dir y los procesa con configure_file
 # dejando en to_dir el resultado.
 # Los nombre de fichero se generan quitando el .in del nombre.
+# -----------------------------------------------------------------------------
 function(config_headers _from_dir _to_dir)
-    get_files(${_from_dir} files *.in)
+    file(REAL_PATH ${_from_dir} _from_dir BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
+    file(REAL_PATH ${_to_dir} _to_dir BASE_DIRECTORY ${PROJECT_BINARY_DIR})
+    paths(FILES files ROOT ${_from_dir} RECURSIVE PATTERNS *.in)
     foreach(it ${files})
         get_filename_component(name ${it} NAME_WLE)
         get_filename_component(dir ${it} DIRECTORY)
@@ -115,11 +82,4 @@ function(config_headers _from_dir _to_dir)
     
 endfunction(config_headers)
 
-function(to_real_path _root _output)
-    set(res "")
-    foreach(file ${ARGN})
-        file(REAL_PATH "${file}" file BASE_DIRECTORY "${_root}" )
-        list(APPEND res ${file})
-    endforeach(file ${ARGN})
-    set(${_output} ${res} PARENT_SCOPE)
-endfunction(to_real_path _root)
+ 

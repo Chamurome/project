@@ -23,6 +23,4 @@ config_target(mmo
     LIBRARIES subtract
     SUBS_DIR extern
     SUBPROJECTS subtract
-    INSTALL_BIN_DIR lib
-    INSTALL_INC_DIR include
 )

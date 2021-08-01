@@ -1,6 +1,8 @@
+# -----------------------------------------------------------------------------
 #   module:     config_target.cmake 
 #   version:    0.1.1
 #   brief:      automatiza la creación de objetivos simples.
+# -----------------------------------------------------------------------------
 include_guard(GLOBAL)
 include(target_attributes)
 
@@ -8,7 +10,6 @@ include(target_attributes)
 macro(_set_includes)
 
     if(DEFINED ${ID}_INC_DIR)
-        info("Include directories ${${ID}_INC_DIR} ")
         target_include_directories(${NAME}
             PUBLIC "${${ID}_INC_DIR}"
         )       
@@ -55,7 +56,7 @@ endmacro(_set_install_dirs)
 # configura una libreria con los parámetros determinados por target_attributes
 function(_config_library NAME)
     target_attributes(${NAME} ${ARGN})
-    show_attributes()
+    info(${ID} ATTRIBUTES)
     cmake_language(CALL
         add_library
         "${NAME}"
@@ -73,14 +74,14 @@ function(_config_library NAME)
     
     _set_install_dirs()
 
-    info("Configured library")
+    info(ALL "Configured library ${NAME}")
 
 endfunction(_config_library NAME)
 
 # configura un executable con los parámetros determinados por target_attributes
 function(_config_executable  NAME)
     target_attributes(${NAME} ${ARGN})
-    show_attributes()
+    info(${ID} ATTRIBUTES)
 
     add_executable(${NAME}
         "${${ID}_SRC_FILES}"
@@ -94,14 +95,14 @@ function(_config_executable  NAME)
     _set_libraries()
 
     _set_install_dirs()
-    info("Configured executable")
+    info(ALL "Configured executable ${NAME}")
 
 endfunction(_config_executable NAME)
 
 # configura una linreria de cabeceras con los parámetros determinados por target_attributes
 function(_config_interface NAME)
     target_attributes(${NAME} ${ARGN})
-    show_attributes()
+    info(${ID} ATTRIBUTES)
 
     add_library(${NAME} INTERFACE)
 
@@ -115,7 +116,7 @@ function(_config_interface NAME)
     )
 
     _set_install_dirs()
-    info("Configured interface")
+    info(ALL "Configured interface ${NAME}")
 
 endfunction(_config_interface NAME)
 
@@ -137,8 +138,8 @@ function(config_target NAME)
     endif()
 
     if(DEFINED ${ID}_TEST_DIR AND "${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
-        status("Configurando test en ${${ID}_TEST_DIR}")
-        # Asegura la creacion de DartConfiguration
+    info(ALL "Configurando test en ${${ID}_TEST_DIR}")
+    # Asegura la creacion de DartConfiguration
         include(CTest) 
         if(DEFINED ${ID}_TEST_FRAMEWORK)
             include(FetchContent)
@@ -151,5 +152,5 @@ function(config_target NAME)
         endif()
         add_subdirectory(${${ID}_TEST_DIR})
     endif(DEFINED ${ID}_TEST_DIR AND "${CMAKE_PROJECT_NAME}" STREQUAL "${PROJECT_NAME}")
-    
+    push_up_attribs(${ID})
 endfunction(config_target NAME)

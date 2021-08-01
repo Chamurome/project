@@ -1,8 +1,11 @@
+# -----------------------------------------------------------------------------
 #   module:     cxx_compiler_config 
 #   version:    0.1.0
 #   brief:      Determina flags de compilación en función del compilador.
+# -----------------------------------------------------------------------------
 
 include(tools)
+include(info)
 
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 20)
@@ -13,13 +16,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Built type" FORCE)
 endif()
 
-if(CMAKE_CXX_COMPILER_LOADED)
-  message(STATUS "Compiler path: ${CMAKE_CXX_COMPILER}")
-  message(STATUS "Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
-  message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
-  message(STATUS "Compiler is part of GCC: ${CMAKE_COMPILER_IS_GNUCXX}")
-endif()
-
+ 
 
 set(CXX_FLAGS)
 set(CXX_FLAGS_DEBUG ) # -fprofile-arcs -ftest-coverage
@@ -51,8 +48,9 @@ add_compile_definitions(${CXX_DEFS}
     "$<$<CONFIG:Release>:${CXX_DEFS_RELEASE}>"
 )
 
-info("BUILD TYPE: ${BUILD_TYPE}")
-info("CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
-info("COMPILER: ${CXX_COMPILER}")
-info("OPTIONS: ${CXX_FLAGS}")
-info("DEFINITIONS: ${CXX_DEFS}")
+info(compilation "Build type: ${CMAKE_BUILD_TYPE}")
+info(compilation "Standard: ${CMAKE_CXX_STANDARD}")
+info(compilation "Compiler path: ${CMAKE_CXX_COMPILER}")
+info(compilation "Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+info(compilation "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+info(compilation "Compiler is part of GCC: ${CMAKE_COMPILER_IS_GNUCXX}")

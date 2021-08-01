@@ -1,12 +1,14 @@
+# -----------------------------------------------------------------------------
 #   module:     target_attributes.cmake 
-#   version:    0.1.0
+#   version:    2.0.0
 #   brief:      determina las propiedades de objetivos simples a partir de ciertos parámetros.
+# -----------------------------------------------------------------------------
 
 include_guard(GLOBAL)
 include(tools)
 
 
-#
+# -----------------------------------------------------------------------------
 # Determina atributos para un objetivo dado
 #
 # ROOT Directorio raiz del objetivo(p.o. el del projecto)
@@ -28,6 +30,7 @@ include(tools)
 # TEST_GIT          Dirección repositorio Git
 # TEST_GIT_TAG      Tag del repositorio a descargar.
 # INSTALLABLE       Prepara el objetivo para la instalación.
+# -----------------------------------------------------------------------------
 function(target_attributes _name)
     set(options INSTALLABLE)
     set(singles 
@@ -39,8 +42,11 @@ function(target_attributes _name)
         TEST_FRAMEWORK TEST_GIT TEST_GIT_TAG
     )
     set(multiples LIBRARIES INCLUDES SUBPROJECTS)
-
-    message("*** ${NAME} ${ARGN}") 
+    
+    if(NOT DEFINED _ATTRIBS)
+        set(_ATTRIBS "${options};${singles};${multiples}" CACHE INTERNAL "Attribute names" FORCE)
+    endif()
+    
     string(TOUPPER ${_name} ID)
     cmake_parse_arguments(${ID} "${options}" "${singles}" "${multiples}" ${ARGN} )
 
@@ -49,20 +55,24 @@ function(target_attributes _name)
     
     string(TOUPPER "${${ID}_TYPE}" "${ID}_TYPE")
     
+    #get sources info
     if(DEFINED ${ID}_SRC_DIR)
         file(REAL_PATH "${${ID}_SRC_DIR}" ${ID}_SRC_DIR BASE_DIRECTORY "${${ID}_ROOT}" )
         
         if(NOT DEFINED ${ID}_SRC_FILES)
-            get_sources("${${ID}_SRC_DIR}" "${ID}_SRC_FILES")
+            paths(SOURCES ${ID}_SRC_FILES ROOT "${${ID}_SRC_DIR}" RECURSIVE)
             push_up(${ID}_SRC_FILES)
         endif()
-        to_real_path(${${ID}_SRC_DIR} ${ID}_SRC_FILES ${${ID}_SRC_FILES})
-       
+        paths(ABSOLUTE ${ID}_SRC_FILES 
+            ROOT "${${ID}_SRC_DIR}" 
+            PATHS ${${ID}_SRC_FILES}
+        )       
         set(${ID}_SRC_DIR ${${ID}_SRC_DIR} PARENT_SCOPE)
 
     endif(DEFINED ${ID}_SRC_DIR)
     push_up(${ID}_SRC_FILES)
 
+    #get headers info
     if(DEFINED ${ID}_INC_DIR)
         file(REAL_PATH "${${ID}_INC_DIR}" ${ID}_INC_DIR BASE_DIRECTORY "${${ID}_ROOT}" )
 
@@ -75,10 +85,13 @@ function(target_attributes _name)
         endif(DEFINED ${ID}_INC_SUFFIX)
 
         if(NOT DEFINED ${ID}_INC_FILES)
-            get_headers("${real_path}" ${ID}_INC_FILES)
-            to_real_path("${real_path}" ${ID}_INC_FILES ${${ID}_INC_FILES})
+            paths(HEADERS ${ID}_INC_FILES ROOT "${real_path}" RECURSIVE)
+            # to_real_path("${real_path}" ${ID}_INC_FILES ${${ID}_INC_FILES})
         endif()
-        to_real_path("${real_path}" ${ID}_INC_FILES ${${ID}_INC_FILES})
+        paths(ABSOLUTE ${ID}_INC_FILES 
+            ROOT "${real_path}" 
+            PATHS ${${ID}_INC_FILES}
+        )
 
         set(${ID}_INC_DIR ${${ID}_INC_DIR} PARENT_SCOPE)
 
@@ -105,28 +118,13 @@ function(target_attributes _name)
     
 endfunction(target_attributes)
 
+macro(push_up_attribs _id)
+    foreach(it ${_ATTRIBS})
+        push_up(${_id}_${it})
+    endforeach()    
+endmacro()
 
 # Muestra los atributos del objetivo ${ID}
-macro(show_attributes)
-    var_info("${ID}_TYPE")
-    var_info("${ID}_ALIAS")
-    var_info("${ID}_SRC_DIR")
-    var_info("${ID}_INC_DIR")
-    var_info("${ID}_SUBS_DIR")
-    var_info("${ID}_TEST_DIR")
-    var_info("${ID}_SRC_FILES")
-    var_info("${ID}_INC_FILES")
-    var_info("${ID}_INC_SUFFIX")
-    var_info("${ID}_LIBRARIES")
-    var_info("${ID}_LOC_INC_DIR")
-    var_info("${ID}_INCLUDES")
-    var_info("${ID}_SUBPROJECTS")
-    var_info("${ID}_INSTALLABLE")
-    var_info("${ID}_TEST_FRAMEWORK")
-    var_info("${ID}_TEST_GIT")
-    var_info("${ID}_TEST_GIT_TAG")
-endmacro(show_attributes)
-
 macro(_prepare_tests)
     if(DEFINED ${ID}_TEST_FRAMEWORK)
     if(${${ID}_TEST_FRAMEWORK} STREQUAL "googletest")
